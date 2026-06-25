@@ -13,7 +13,6 @@ import {
   Bot,
   User,
   Zap,
-  Copy,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react'
