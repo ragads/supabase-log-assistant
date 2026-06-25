@@ -1,0 +1,18 @@
+services:
+  # FastAPI Python backend on Render (free tier)
+  - type: web
+    name: supabase-log-assistant-api
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false          # Enter manually in Render dashboard
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PAT
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false          # Set to https://your-app.vercel.app after Vercel deploy

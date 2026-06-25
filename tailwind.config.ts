@@ -1,0 +1,121 @@
+import type { Config } from 'tailwindcss'
+import defaultTheme from 'tailwindcss/defaultTheme'
+
+const config: Config = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'dark-bg': '#0f172a',
+        'dark-surface': '#1a2a3a',
+        'dark-surface-dark': '#0d1b2a',
+        'dark-border': '#2d3e52',
+        'dark-border-light': '#3d4e62',
+        'accent-teal': '#10b981',
+        'accent-teal-light': '#14b8a6',
+        'accent-teal-dark': '#059669',
+        'accent-cyan': '#06b6d4',
+        'accent-cyan-light': '#22d3ee',
+        'accent-cyan-dark': '#0891b2',
+        'accent-blue': '#3b82f6',
+        'accent-blue-light': '#60a5fa',
+        'accent-blue-dark': '#1d4ed8',
+        'accent-pink': '#ec4899',
+        'accent-pink-light': '#f472b6',
+        'accent-pink-dark': '#be185d',
+        'accent-green': '#10b981',
+        'accent-green-light': '#6ee7b7',
+        'accent-green-dark': '#047857',
+        'accent-red': '#ef4444',
+        'accent-red-light': '#f87171',
+        'accent-red-dark': '#dc2626',
+        'accent-orange': '#f97316',
+        'accent-orange-light': '#fb923c',
+        'accent-orange-dark': '#ea580c',
+        'accent-yellow': '#eab308',
+        'accent-yellow-light': '#facc15',
+        'accent-yellow-dark': '#ca8a04',
+        'text-primary': '#f1f5f9',
+        'text-secondary': '#cbd5e1',
+        'text-muted': '#94a3b8',
+        'text-code': '#d1d5db',
+      },
+      fontFamily: {
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        mono: ['Menlo', 'Monaco', 'Courier New', 'monospace'],
+      },
+      fontSize: {
+        'xs': '12px',
+        'sm': '14px',
+        'base': '16px',
+        'lg': '18px',
+        'xl': '20px',
+        '2xl': '24px',
+        '3xl': '30px',
+        '4xl': '36px',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'md': '8px',
+        'lg': '12px',
+        'xl': '16px',
+        'full': '9999px',
+      },
+      spacing: {
+        'xs': '4px',
+        'sm': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        '2xl': '32px',
+        '3xl': '48px',
+        '4xl': '64px',
+      },
+      boxShadow: {
+        'subtle': '0 4px 6px rgba(0, 0, 0, 0.3)',
+        'medium': '0 8px 16px rgba(0, 0, 0, 0.5)',
+        'large': '0 16px 32px rgba(0, 0, 0, 0.6)',
+        'glow': '0 0 20px rgba(16, 185, 129, 0.5)',
+        'glow-cyan': '0 0 20px rgba(6, 182, 212, 0.5)',
+        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.5)',
+      },
+      animation: {
+        'fadeIn': 'fadeIn 0.3s ease-in',
+        'slideIn': 'slideIn 0.3s ease-out',
+        'slideInRight': 'slideInRight 0.3s ease-out',
+        'slideInUp': 'slideInUp 0.3s ease-out',
+        'pulse-glow': 'pulseGlow 2s infinite',
+        'spin-slow': 'spin 3s linear infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideIn: {
+          '0%': { transform: 'translateX(-10px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideInRight: {
+          '0%': { transform: 'translateX(10px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideInUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        pulseGlow: {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(16, 185, 129, 0.5)' },
+          '50%': { boxShadow: '0 0 30px rgba(16, 185, 129, 0.8)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+
+export default config

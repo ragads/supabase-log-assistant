@@ -1,0 +1,50 @@
+{
+  "name": "supabase-log-assistant",
+  "version": "1.0.0",
+  "description": "AI-powered log analysis for Supabase projects",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\"",
+    "analyze": "ANALYZE=true next build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "^14.0.0",
+    "typescript": "^5.0.0",
+    "axios": "^1.6.0",
+    "@tanstack/react-query": "^5.0.0",
+    "tailwindcss": "^3.3.0",
+    "lucide-react": "^0.263.0",
+    "recharts": "^2.10.0",
+    "framer-motion": "^10.16.0",
+    "@radix-ui/react-dialog": "^1.1.0",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-tabs": "^1.0.0",
+    "@radix-ui/react-popover": "^1.0.0",
+    "@radix-ui/react-scroll-area": "^1.0.0",
+    "@supabase/supabase-js": "^2.38.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "postcss": "^8.4.0",
+    "prettier": "^3.0.0",
+    "@tailwindcss/typography": "^0.5.0",
+    "@tailwindcss/forms": "^0.5.0",
+    "@tailwindcss/aspect-ratio": "^0.4.0"
+  }
+}
