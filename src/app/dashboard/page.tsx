@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/common/Card'
+import { MetricCard } from '@/components/dashboard/MetricCard'
 import { Button } from '@/components/common/Button'
 import { Badge } from '@/components/common/Badge'
 import { Spinner } from '@/components/common/Spinner'
