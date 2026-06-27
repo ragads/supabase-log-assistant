@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import re
 import json
+import time
 import logging
 import urllib.parse
 import urllib.request
@@ -186,14 +187,28 @@ class LogDatabaseManager:
                 "User-Agent": "supabase-log-assistant/1.0",
             },
         )
-        try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                payload = json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", "ignore")
-            raise RuntimeError(f"Analytics API HTTP {e.code}: {body[:300]}")
-        except urllib.error.URLError as e:
-            raise RuntimeError(f"Analytics API connection error: {e}")
+        # Retry transient failures (cold-start timeouts, rate limits, gateway errors)
+        # before giving up. A failed rich query otherwise falls back to a minimal
+        # query that drops the severity column, silently mislabelling every log as
+        # INFO and breaking level-based filtering (e.g. get_logs_by_level('ERROR')).
+        payload = None
+        last_err: Optional[Exception] = None
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(req, timeout=45) as resp:
+                    payload = json.loads(resp.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as e:
+                body = e.read().decode("utf-8", "ignore")
+                last_err = RuntimeError(f"Analytics API HTTP {e.code}: {body[:300]}")
+                # 4xx (auth/bad request) won't fix themselves — fail fast.
+                if e.code not in (429, 500, 502, 503, 504) or attempt == 2:
+                    raise last_err
+            except urllib.error.URLError as e:
+                last_err = RuntimeError(f"Analytics API connection error: {e}")
+                if attempt == 2:
+                    raise last_err
+            time.sleep(1.5 * (attempt + 1))
 
         if isinstance(payload, dict):
             if payload.get("error"):
