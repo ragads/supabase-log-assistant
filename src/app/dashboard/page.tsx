@@ -10,8 +10,8 @@ import { Spinner } from '@/components/common/Spinner'
 import { Alert } from '@/components/common/Alert'
 import { AlertCircle, TrendingUp, Activity, RefreshCw, Wifi, Database, Shield, Zap, Globe } from 'lucide-react'
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -143,85 +143,77 @@ export default function DashboardPage() {
               {/* Error Rate Chart */}
               <Card className="p-6" hoverable>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-text-primary">
-                    Error Rate ({timeRange})
-                  </h3>
+                  <h3 className="text-lg font-semibold text-text-primary">Error Rate ({timeRange})</h3>
                   <Badge variant="info">Last {timeRange}</Badge>
                 </div>
                 {errorRateData && errorRateData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={errorRateData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-dark-border)" />
-                      <XAxis dataKey="time" stroke="var(--color-text-muted)" />
-                      <YAxis stroke="var(--color-text-muted)" />
+                  <ResponsiveContainer width="100%" height={240}>
+                    <AreaChart data={errorRateData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="errorRateGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                      <XAxis dataKey="time" stroke="rgba(255,255,255,0.25)" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <YAxis stroke="rgba(255,255,255,0.25)" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', backdropFilter: 'blur(16px)', color: '#f1f5f9' }}
-                        cursor={{ stroke: 'var(--color-accent-teal)' }}
+                        contentStyle={{ background: 'rgba(6,13,26,0.9)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', backdropFilter: 'blur(16px)', color: '#f1f5f9', fontSize: 12 }}
+                        cursor={{ stroke: 'rgba(6,182,212,0.4)', strokeWidth: 1, strokeDasharray: '4 2' }}
                       />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="var(--color-accent-cyan)"
-                        strokeWidth={2}
-                        dot={{ fill: 'var(--color-accent-teal)', r: 4 }}
-                        activeDot={{ r: 6 }}
+                      <Area type="monotone" dataKey="value" stroke="#06b6d4" strokeWidth={2.5} fill="url(#errorRateGrad)"
+                        dot={{ fill: '#10b981', r: 4, strokeWidth: 0 }}
+                        activeDot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: 'rgba(16,185,129,0.3)' }}
                       />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-[250px] flex items-center justify-center text-text-muted">
-                    No data available
-                  </div>
+                  <div className="h-[240px] flex items-center justify-center text-text-muted text-sm">No data available</div>
                 )}
               </Card>
 
               {/* Severity Distribution */}
               <Card className="p-6" hoverable>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-text-primary">
-                    Log Severity Distribution
-                  </h3>
-                </div>
+                <h3 className="text-lg font-semibold text-text-primary mb-4">Log Severity Distribution</h3>
                 {severityData && severityData.length > 0 ? (
                   <>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={severityData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={2}
-                          dataKey="value"
-                        >
-                          {severityData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{ background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', backdropFilter: 'blur(16px)', color: '#f1f5f9' }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      {severityData.map((item) => (
-                        <div key={item.name} className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: item.color }}
-                          ></div>
-                          <span className="text-xs text-text-secondary">
-                            {item.name} ({item.value})
-                          </span>
+                    <div className="relative">
+                      <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                          <Pie data={severityData} cx="50%" cy="50%" innerRadius={65} outerRadius={95} paddingAngle={3} dataKey="value" startAngle={90} endAngle={-270}>
+                            {severityData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
+                            ))}
+                          </Pie>
+                          <Tooltip contentStyle={{ background: 'rgba(6,13,26,0.9)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: '#f1f5f9', fontSize: 12 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      {/* Center total */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-text-primary">{severityData.reduce((a, b) => a + b.value, 0)}</p>
+                          <p className="text-xs text-text-muted">Logs</p>
                         </div>
-                      ))}
+                      </div>
+                    </div>
+                    {/* Legend with percentages */}
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      {severityData.map((item) => {
+                        const total = severityData.reduce((a, b) => a + b.value, 0)
+                        const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0'
+                        return (
+                          <div key={item.name} className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: `${item.color}12` }}>
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                            <span className="text-xs text-text-secondary flex-1">{item.name}</span>
+                            <span className="text-xs font-bold" style={{ color: item.color }}>{pct}%</span>
+                          </div>
+                        )
+                      })}
                     </div>
                   </>
                 ) : (
-                  <div className="h-[250px] flex items-center justify-center text-text-muted">
-                    No data available
-                  </div>
+                  <div className="h-[250px] flex items-center justify-center text-text-muted text-sm">No data available</div>
                 )}
               </Card>
             </div>
