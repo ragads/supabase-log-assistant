@@ -11,6 +11,7 @@ export const useDashboard = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<Error | null>(null)
+  const [wakingUp, setWakingUp] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [nextRefreshIn, setNextRefreshIn] = useState(15)
 
@@ -41,14 +42,22 @@ export const useDashboard = () => {
       setLastUpdated(new Date())
       setNextRefreshIn(15)
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err
-          : new Error('Failed to fetch dashboard data')
-      )
+      const isTimeout = err instanceof Error && (err.message.includes('timeout') || err.message.includes('ECONNABORTED'))
+      if (isTimeout && !silent) {
+        // Render cold start — auto-retry after 10s
+        setWakingUp(true)
+        setIsLoading(false)
+        setTimeout(() => {
+          setWakingUp(false)
+          fetchDashboard(false)
+        }, 10000)
+        return
+      }
+      setError(err instanceof Error ? err : new Error('Failed to fetch dashboard data'))
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)
+      setWakingUp(false)
     }
   }, [])
 
@@ -75,6 +84,7 @@ export const useDashboard = () => {
     recentLogs,
     isLoading,
     isRefreshing,
+    wakingUp,
     error,
     lastUpdated,
     nextRefreshIn,

@@ -32,7 +32,7 @@ const TOOLTIP_STYLE = {
 }
 
 export default function DashboardPage() {
-  const { metrics, errorRateData, severityData, sourcesData, recentLogs, isLoading, isRefreshing, error, lastUpdated, nextRefreshIn, refetch } = useDashboard()
+  const { metrics, errorRateData, severityData, sourcesData, recentLogs, isLoading, isRefreshing, wakingUp, error, lastUpdated, nextRefreshIn, refetch } = useDashboard()
   const [timeRange] = useState('24h')
 
   // Derive top log source from sourcesData
@@ -74,6 +74,21 @@ export default function DashboardPage() {
     high:   { bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.25)',   dot: '#ef4444' },
     error:  { bg: 'rgba(249,115,22,0.1)',  border: 'rgba(249,115,22,0.25)',  dot: '#f97316' },
     medium: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.25)', dot: '#8b5cf6' },
+  }
+
+  if (wakingUp) {
+    return (
+      <>
+        <Header title="Log Analytics Overview" subtitle="" />
+        <div className="p-8 flex flex-col items-center justify-center gap-4 mt-20">
+          <Spinner size="lg" />
+          <p className="text-text-primary font-semibold text-lg">Waking up the server...</p>
+          <p className="text-text-muted text-sm text-center max-w-sm">
+            The backend is starting up after being idle. This takes about 30–60 seconds on the free tier. Retrying automatically...
+          </p>
+        </div>
+      </>
+    )
   }
 
   if (error) {

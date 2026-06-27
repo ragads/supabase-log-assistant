@@ -9,7 +9,7 @@ class APIService {
       // Use relative paths so Next.js rewrites forward to the correct backend
       // (localhost:8000 in dev, Render URL in prod via BACKEND_API_URL env var).
       baseURL: '',
-      timeout: 30000,
+      timeout: 70000, // 70s — Render free tier cold-start takes up to 60s
       headers: {
         'Content-Type': 'application/json',
       },
