@@ -105,7 +105,7 @@ class MCPGeminiClient:
                     
                     client = genai.Client(api_key=self.api_key)
                     async_client = client.aio
-                    model_name = "gemini-2.5-flash"
+                    model_name = "gemini-1.5-flash"  # 1500 RPD free tier (vs 250 for 2.5-flash)
                     
                     self.log_trace("llm", f"Configuring Gemini model '{model_name}' with {len(function_declarations)} tools.")
 
@@ -144,7 +144,7 @@ class MCPGeminiClient:
                                 is_rate_limit = "429" in err_str or "RESOURCE_EXHAUSTED" in err_str
                                 if not is_rate_limit or attempt == 2:
                                     raise
-                                wait = 10 * (attempt + 1)
+                                wait = 15 if attempt == 0 else 45
                                 self.log_trace("llm", f"Gemini 429 rate limit — retrying in {wait}s (attempt {attempt + 1}/3)...")
                                 await asyncio.sleep(wait)
                         
