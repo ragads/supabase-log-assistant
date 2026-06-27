@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ title, subtitle, actions }) => {
   return (
-    <header className="sticky top-0 z-40 bg-dark-surface/80 backdrop-blur-md border-b border-dark-border">
+    <header className="glass-header sticky top-0 z-40">
       <div className="px-8 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary">{title}</h1>

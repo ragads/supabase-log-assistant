@@ -29,7 +29,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   }
 
   return (
-    <Card className="p-6 hover:shadow-glow" hoverable>
+    <Card className="p-6 hover:border-white/20 hover:shadow-[0_0_24px_rgba(16,185,129,0.15)]" hoverable>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-text-muted text-sm font-medium">{title}</p>

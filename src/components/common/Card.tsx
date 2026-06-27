@@ -15,14 +15,14 @@ export const Card: React.FC<CardProps> = ({
   variant = 'default',
   onClick,
 }) => {
-  const baseStyles = 'rounded-lg border backdrop-blur-sm'
-  
+  const baseStyles = 'rounded-xl'
+
   const variantStyles = {
-    default: 'bg-dark-surface/50 border-dark-border',
-    subtle: 'bg-dark-surface-dark/30 border-dark-border/50',
+    default: 'glass-card',
+    subtle: 'glass-card-subtle',
   }
-  
-  const hoverStyles = hoverable ? 'hover:border-accent-teal transition-all duration-300 hover:shadow-glow cursor-pointer' : ''
+
+  const hoverStyles = hoverable ? 'transition-all duration-300 cursor-pointer' : ''
   
   return (
     <div 

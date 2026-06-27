@@ -25,9 +25,9 @@ export const Sidebar: React.FC = () => {
   const isActive = (href: string) => pathname === href
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-dark-surface border-r border-dark-border flex flex-col">
+    <aside className="glass-sidebar fixed left-0 top-0 h-screen w-64 flex flex-col z-20">
       {/* Logo Section */}
-      <div className="p-6 border-b border-dark-border">
+      <div className="glass-sidebar-section p-6">
         <h1 className="text-xl font-bold text-accent-teal flex items-center gap-2">
           <div className="w-8 h-8 bg-accent-teal rounded-md flex items-center justify-center text-dark-bg font-bold">
             🛡️
@@ -49,8 +49,8 @@ export const Sidebar: React.FC = () => {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all duration-300 ${
                 active
-                  ? 'bg-dark-surface-dark border border-accent-teal text-accent-teal'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-dark-surface-dark'
+                  ? 'glass border-l-2 border-accent-teal text-accent-teal drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-white/5'
               }`}
             >
               <Icon size={20} />
@@ -61,7 +61,7 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Footer Section */}
-      <div className="border-t border-dark-border p-4">
+      <div className="glass-sidebar-footer p-4">
         <div className="text-xs text-center text-text-muted">
           v1.0 (MCP Protocol)
         </div>
