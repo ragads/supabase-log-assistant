@@ -1,14 +1,13 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/common/Card'
-import { MetricCard } from '@/components/dashboard/MetricCard'
 import { Button } from '@/components/common/Button'
 import { Badge } from '@/components/common/Badge'
 import { Spinner } from '@/components/common/Spinner'
 import { Alert } from '@/components/common/Alert'
-import { AlertCircle, TrendingUp, Activity, ArrowDown, ArrowUp, RefreshCw } from 'lucide-react'
+import { AlertCircle, TrendingUp, Activity, RefreshCw, Wifi, Database, Shield, Zap, Globe } from 'lucide-react'
 import {
   LineChart,
   Line,
@@ -20,17 +19,18 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
 } from 'recharts'
 import { useDashboard } from '@/hooks/useDashboard'
 
 export default function DashboardPage() {
-  const { metrics, errorRateData, severityData, sourcesData, recentLogs, isLoading, error, refetch } = useDashboard()
+  const { metrics, errorRateData, severityData, sourcesData, recentLogs, isLoading, isRefreshing, error, lastUpdated, nextRefreshIn, refetch } = useDashboard()
   const [timeRange, setTimeRange] = useState('24h')
 
-  const handleRefresh = () => {
-    refetch()
+  const sourceIcons: Record<string, React.ReactNode> = {
+    'api-gateway': <Globe size={16} />,
+    'database': <Database size={16} />,
+    'auth': <Shield size={16} />,
+    'edge-functions': <Zap size={16} />,
   }
 
   if (error) {
@@ -55,10 +55,28 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle="Real-time overview of your Supabase logs"
         actions={
-          <Button size="sm" variant="secondary" onClick={handleRefresh}>
-            <RefreshCw size={18} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Live indicator */}
+            <div className="live-pill flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium">
+              <span className="live-dot w-2 h-2 rounded-full bg-accent-teal" />
+              <Wifi size={12} className="text-accent-teal" />
+              <span className="text-accent-teal">Live</span>
+              {isRefreshing ? (
+                <Spinner size="sm" />
+              ) : (
+                <span className="text-text-muted">{nextRefreshIn}s</span>
+              )}
+            </div>
+            {lastUpdated && (
+              <span className="text-xs text-text-muted hidden lg:block">
+                Updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+            <Button size="sm" variant="secondary" onClick={refetch}>
+              <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              Refresh
+            </Button>
+          </div>
         }
       />
 
@@ -136,11 +154,7 @@ export default function DashboardPage() {
                       <XAxis dataKey="time" stroke="var(--color-text-muted)" />
                       <YAxis stroke="var(--color-text-muted)" />
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'var(--color-dark-surface)',
-                          border: '1px solid var(--color-dark-border)',
-                          borderRadius: 'var(--radius-md)',
-                        }}
+                        contentStyle={{ background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', backdropFilter: 'blur(16px)', color: '#f1f5f9' }}
                         cursor={{ stroke: 'var(--color-accent-teal)' }}
                       />
                       <Line
@@ -185,10 +199,7 @@ export default function DashboardPage() {
                           ))}
                         </Pie>
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'var(--color-dark-surface)',
-                            border: '1px solid var(--color-dark-border)',
-                          }}
+                          contentStyle={{ background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', backdropFilter: 'blur(16px)', color: '#f1f5f9' }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -214,29 +225,42 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* Log Sources Distribution */}
+            {/* Log Sources Distribution - Source Cards */}
             <Card className="p-6" hoverable>
-              <h3 className="text-lg font-semibold text-text-primary mb-4">
-                Log Sources Distribution
-              </h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-text-primary">Log Sources Distribution</h3>
+                <span className="source-total-badge text-xs text-text-muted px-3 py-1 rounded-full">
+                  {sourcesData?.reduce((a, b) => a + b.count, 0) || 0} total logs
+                </span>
+              </div>
               {sourcesData && sourcesData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={sourcesData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-dark-border)" />
-                    <XAxis dataKey="name" stroke="var(--color-text-muted)" />
-                    <YAxis stroke="var(--color-text-muted)" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'var(--color-dark-surface)',
-                        border: '1px solid var(--color-dark-border)',
-                      }}
-                    />
-                    <Bar dataKey="count" fill="var(--color-accent-teal)" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {(() => {
+                    const total = sourcesData.reduce((a, b) => a + b.count, 0)
+                    const palette = ['#10b981', '#06b6d4', '#8b5cf6', '#f97316', '#3b82f6', '#ec4899']
+                    return sourcesData.map((source, idx) => {
+                      const pct = total > 0 ? Math.round((source.count / total) * 100) : 0
+                      const color = palette[idx % palette.length]
+                      return (
+                        <div key={source.name} className="source-card rounded-xl p-4 transition-all duration-300 hover:scale-[1.02]">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-medium text-text-muted uppercase tracking-wider truncate">{source.name}</span>
+                            <span className="text-xs font-bold ml-2 flex-shrink-0" style={{ color }}>{pct}%</span>
+                          </div>
+                          <p className="text-3xl font-bold text-text-primary mb-4">{source.count}</p>
+                          <div className="progress-track h-1.5 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color, boxShadow: `0 0 8px ${color}80` }} />
+                          </div>
+                          <p className="text-xs text-text-muted mt-2">logs recorded</p>
+                        </div>
+                      )
+                    })
+                  })()}
+                </div>
               ) : (
-                <div className="h-[250px] flex items-center justify-center text-text-muted">
-                  No data available
+                <div className="h-[120px] flex flex-col items-center justify-center text-text-muted gap-2">
+                  <Activity size={24} className="opacity-40" />
+                  <span className="text-sm">No source data available</span>
                 </div>
               )}
             </Card>
@@ -252,28 +276,20 @@ export default function DashboardPage() {
                 {recentLogs && recentLogs.length > 0 ? (
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-dark-border">
-                        <th className="text-left py-3 px-4 font-semibold text-text-secondary">
-                          Time
-                        </th>
-                        <th className="text-left py-3 px-4 font-semibold text-text-secondary">
-                          Severity
-                        </th>
-                        <th className="text-left py-3 px-4 font-semibold text-text-secondary">
-                          Source
-                        </th>
-                        <th className="text-left py-3 px-4 font-semibold text-text-secondary">
-                          Message
-                        </th>
+                      <tr className="glass-table-header-row">
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wider">Time</th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wider">Severity</th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wider">Source</th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wider">Message</th>
                       </tr>
                     </thead>
                     <tbody>
                       {recentLogs.map((log, idx) => (
                         <tr
                           key={idx}
-                          className="border-b border-dark-border/50 hover:bg-dark-surface-dark transition-colors cursor-pointer"
+                          className="glass-table-row glass-table-body-row transition-colors cursor-pointer"
                         >
-                          <td className="py-3 px-4 text-text-primary">
+                          <td className="py-3 px-4 text-text-muted text-xs font-mono">
                             {new Date(log.timestamp).toLocaleString()}
                           </td>
                           <td className="py-3 px-4">
@@ -289,8 +305,8 @@ export default function DashboardPage() {
                               {log.severity}
                             </Badge>
                           </td>
-                          <td className="py-3 px-4 text-text-secondary">{log.source}</td>
-                          <td className="py-3 px-4 text-text-secondary truncate max-w-xs">
+                          <td className="py-3 px-4 text-text-secondary text-xs">{log.source}</td>
+                          <td className="py-3 px-4 text-text-secondary truncate max-w-xs text-xs">
                             {log.message}
                           </td>
                         </tr>

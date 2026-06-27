@@ -156,6 +156,65 @@ body {
   box-shadow: 0 8px 32px rgba(16, 185, 129, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
+/* Dashboard source badge */
+.source-total-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Source card in Log Sources Distribution */
+.source-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Progress bar track */
+.progress-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Chart tooltip glass style */
+.chart-tooltip {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  color: #f1f5f9 !important;
+}
+
+/* Table row hover in glass context */
+.glass-table-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.glass-table-header-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Live indicator pill */
+.live-pill {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+/* Pulsing live dot */
+.live-dot {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.glass-table-body-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 8px;

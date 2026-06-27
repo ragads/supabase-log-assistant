@@ -9,10 +9,17 @@ export const useDashboard = () => {
   const [sourcesData, setSourcesData] = useState<SourceDistributionItem[]>([])
   const [recentLogs, setRecentLogs] = useState<LogEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<Error | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [nextRefreshIn, setNextRefreshIn] = useState(15)
 
-  const fetchDashboard = useCallback(async () => {
-    setIsLoading(true)
+  const fetchDashboard = useCallback(async (silent = false) => {
+    if (silent) {
+      setIsRefreshing(true)
+    } else {
+      setIsLoading(true)
+    }
     setError(null)
     try {
       const metricsRes = await apiService.getDashboardMetrics() as any
@@ -31,6 +38,8 @@ export const useDashboard = () => {
       setSeverityData(metricsRes.severityDistribution || [])
       setSourcesData(metricsRes.sourceDistribution || [])
       setRecentLogs(metricsRes.recentLogs || [])
+      setLastUpdated(new Date())
+      setNextRefreshIn(15)
     } catch (err) {
       setError(
         err instanceof Error
@@ -39,14 +48,24 @@ export const useDashboard = () => {
       )
     } finally {
       setIsLoading(false)
+      setIsRefreshing(false)
     }
   }, [])
 
+  // Auto-refresh every 15s
   useEffect(() => {
-    fetchDashboard()
-    const interval = setInterval(fetchDashboard, 30000) // Refresh every 30s
+    fetchDashboard(false)
+    const interval = setInterval(() => fetchDashboard(true), 15000)
     return () => clearInterval(interval)
   }, [fetchDashboard])
+
+  // Countdown ticker
+  useEffect(() => {
+    const ticker = setInterval(() => {
+      setNextRefreshIn(prev => (prev <= 1 ? 15 : prev - 1))
+    }, 1000)
+    return () => clearInterval(ticker)
+  }, [])
 
   return {
     metrics,
@@ -55,7 +74,10 @@ export const useDashboard = () => {
     sourcesData,
     recentLogs,
     isLoading,
+    isRefreshing,
     error,
-    refetch: fetchDashboard,
+    lastUpdated,
+    nextRefreshIn,
+    refetch: () => fetchDashboard(false),
   }
 }
