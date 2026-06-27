@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import json
 import asyncio
 import logging
+import time
 from datetime import datetime
 from typing import List, Dict, Any, Tuple
 
@@ -127,12 +128,25 @@ class MCPGeminiClient:
                     while loop_count < max_loops:
                         loop_count += 1
                         self.log_trace("llm", "Awaiting model response...")
-                        
-                        response = await async_client.models.generate_content(
-                            model=model_name,
-                            contents=contents,
-                            config=types.GenerateContentConfig(tools=gemini_tools)
-                        )
+
+                        # Retry up to 3 times on Gemini 429 / RESOURCE_EXHAUSTED
+                        response = None
+                        for attempt in range(3):
+                            try:
+                                response = await async_client.models.generate_content(
+                                    model=model_name,
+                                    contents=contents,
+                                    config=types.GenerateContentConfig(tools=gemini_tools)
+                                )
+                                break
+                            except Exception as ge:
+                                err_str = str(ge)
+                                is_rate_limit = "429" in err_str or "RESOURCE_EXHAUSTED" in err_str
+                                if not is_rate_limit or attempt == 2:
+                                    raise
+                                wait = 10 * (attempt + 1)
+                                self.log_trace("llm", f"Gemini 429 rate limit — retrying in {wait}s (attempt {attempt + 1}/3)...")
+                                await asyncio.sleep(wait)
                         
                         # Verify candidate content
                         if not response.candidates or not response.candidates[0].content:
