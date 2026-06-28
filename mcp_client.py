@@ -105,7 +105,7 @@ class MCPGeminiClient:
                     
                     client = genai.Client(api_key=self.api_key)
                     async_client = client.aio
-                    model_name = "gemini-1.5-flash"  # 1500 RPD free tier (vs 250 for 2.5-flash)
+                    model_name = "gemini-2.0-flash"  # Stable free-tier model (1500 RPD)
                     
                     self.log_trace("llm", f"Configuring Gemini model '{model_name}' with {len(function_declarations)} tools.")
 
