@@ -20,7 +20,7 @@ def list_recent_logs(limit: int = 15) -> str:
     """
     Retrieves the most recent Supabase platform log entries across all enabled
     sources (Postgres, API/Edge, Auth, Edge Functions). Each entry is normalized to
-    {created_at, level, service, source, message, metadata}.
+    {created_at, level, service, source, message}.
     Use this to see what has been happening on the project recently.
 
     Args:
@@ -30,7 +30,9 @@ def list_recent_logs(limit: int = 15) -> str:
     logger.info(f"Tool 'list_recent_logs' called with limit={limit} (capped at 15)")
     try:
         logs = db.fetch_logs(limit=limit)
-        return json.dumps(logs, indent=2, default=str)
+        # Strip metadata to save token payload size
+        cleaned = [{k: v for k, v in log.items() if k != "metadata"} for log in logs]
+        return json.dumps(cleaned, default=str)
     except Exception as e:
         logger.error(f"Error in list_recent_logs: {e}")
         return json.dumps({"error": str(e)})
@@ -51,7 +53,9 @@ def get_logs_by_level(level: str, limit: int = 15) -> str:
     logger.info(f"Tool 'get_logs_by_level' called with level={level}, limit={limit} (capped at 15)")
     try:
         logs = db.get_logs_by_level(level=level, limit=limit)
-        return json.dumps(logs, indent=2, default=str)
+        # Strip metadata to save token payload size
+        cleaned = [{k: v for k, v in log.items() if k != "metadata"} for log in logs]
+        return json.dumps(cleaned, default=str)
     except Exception as e:
         logger.error(f"Error in get_logs_by_level: {e}")
         return json.dumps({"error": str(e)})
@@ -71,7 +75,9 @@ def search_logs_by_keyword(keyword: str, limit: int = 15) -> str:
     logger.info(f"Tool 'search_logs_by_keyword' called with keyword='{keyword}', limit={limit} (capped at 15)")
     try:
         logs = db.search_logs(keyword=keyword, limit=limit)
-        return json.dumps(logs, indent=2, default=str)
+        # Strip metadata to save token payload size
+        cleaned = [{k: v for k, v in log.items() if k != "metadata"} for log in logs]
+        return json.dumps(cleaned, default=str)
     except Exception as e:
         logger.error(f"Error in search_logs_by_keyword: {e}")
         return json.dumps({"error": str(e)})

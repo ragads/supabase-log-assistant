@@ -231,44 +231,6 @@ def get_log_detail(log_id: str):
         logger.error(f"Error getting log detail: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# 4.5 Diagnostic endpoint to check subprocess environment on Render
-@app.get("/api/diag")
-def diagnostic_check():
-    import subprocess
-    import sys
-    
-    python_exe = sys.executable
-    server_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mcp_server.py")
-    
-    try:
-        # Run mcp_server.py as a subprocess with a timeout to verify imports and execution
-        process = subprocess.Popen(
-            [python_exe, server_script],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        # Let it run for 4 seconds to boot and load all libraries
-        try:
-            stdout, stderr = process.communicate(timeout=4.0)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            stdout, stderr = process.communicate()
-            
-        return {
-            "sys_executable": python_exe,
-            "server_script_exists": os.path.exists(server_script),
-            "script_path": server_script,
-            "return_code": process.returncode,
-            "stdout": stdout,
-            "stderr": stderr,
-            "sys_path": sys.path
-        }
-    except Exception as e:
-        return {
-            "error": str(e)
-        }
-
 # 5. AI Assistant Chat
 @app.post("/api/chat/message")
 async def send_chat_message(request: ChatRequest):
