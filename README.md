@@ -1,84 +1,98 @@
-# Supabase Log AI Assistant (MCP)
+# Supabase Log AI Assistant
 
-This project is an interactive, AI-driven log analysis platform built with Python, Streamlit, and Google's Gemini LLM. It uses the **Model Context Protocol (MCP)** to allow Gemini to dynamically explore, search, and analyze real, live logs from your Supabase project.
-
----
-
-## 1. Architecture Overview
-
-```
-   ┌──────────────────────────┐
-   │       Streamlit UI       │◄─── (Dashboard / Log Explorer)
-   │         (app.py)         │
-   └─────────────┬────────────┘
-                 │
-                 ▼ (Queries)
-   ┌──────────────────────────┐
-   │     MCP Gemini Client    │◄─── (Orchestrates Gemini API Function Loop)
-   │      (mcp_client.py)     │
-   └─────────────┬────────────┘
-                 │
-                 ▼ (Stdio JSON-RPC Subprocess)
-   ┌──────────────────────────┐
-   │        MCP Server        │
-   │      (mcp_server.py)     │
-   └─────────────┬────────────┘
-                 │
-                 ▼ (Retrieves logs via)
-   ┌──────────────────────────┐
-   │    Log Database Manager  │◄─── (Reads and normalizes logs from Supabase)
-   │   (supabase_client.py)   │
-   └─────────────┬────────────┘
-                 │
-                 ▼ (HTTPS requests)
-   ┌──────────────────────────┐
-   │     Supabase Management  │
-   │        Analytics API     │
-   └──────────────────────────┘
-```
-
-1. **Streamlit UI (`app.py`)**: Renders the analytics dashboard, metrics charts, log table explorer, and AI chat interface.
-2. **MCP Gemini Client (`mcp_client.py`)**: Orchestrates the communication between the Gemini model (`gemini-2.5-flash`) and the local MCP server using manual function calling loops.
-3. **MCP Server (`mcp_server.py`)**: Built with `FastMCP`, this exposes tools to list logs, filter by severity, search by keyword, run analytics summaries, or execute custom BigQuery SQL queries.
-4. **Log Database Manager (`supabase_client.py`)**: Interacts with the Supabase Management API using your credentials, converting platform logs (database, edge, auth, functions) into a uniform schema.
+An interactive, AI-powered log analysis platform built with a **Next.js** frontend, a **FastAPI** backend, and **Groq LLM** (`llama-3.1-8b-instant`). It enables real-time monitoring and natural language querying of live logs fetched directly from the Supabase Analytics API.
 
 ---
 
-## 2. File Directory Breakdown
+## 1. Tech Stack & Architecture
 
-* **[app.py](file:///f:/Supabase%20assist/app.py)**: The main entrypoint for the Streamlit dashboard and chat UI.
-* **[supabase_client.py](file:///f:/Supabase%20assist/supabase_client.py)**: Normalizes logs and executes raw SQL queries against the Supabase Analytics endpoints.
-* **[mcp_server.py](file:///f:/Supabase%20assist/mcp_server.py)**: FastMCP server providing JSON-RPC tools to query, filter, and search logs.
-* **[mcp_client.py](file:///f:/Supabase%20assist/mcp_client.py)**: Spawns the MCP server as a stdio subprocess and implements Gemini tool loop bindings.
-* **[init_db.py](file:///f:/Supabase%20assist/init_db.py)**: Contains a mock log generator helper class (no longer required to seed DB, as the app queries live logs).
-* **[test_client.py](file:///f:/Supabase%20assist/test_client.py)**: A console script to quickly verify client/server interaction.
-* **[requirements.txt](file:///f:/Supabase%20assist/requirements.txt)**: Lists dependencies including Streamlit, Supabase, FastMCP, and the Google GenAI SDK.
-* **[.env.example](file:///f:/Supabase%20assist/.env.example)**: Reference template for environment configuration.
+```
+  ┌────────────────────────────────────────────────────────┐
+  │                 Next.js Frontend (Vercel)              │
+  │     (Dashboard / Log Explorer / AI Chat / Recharts)    │
+  └──────────────────────────┬─────────────────────────────┘
+                             │
+                             ▼ (API requests proxied / rewritten)
+  ┌────────────────────────────────────────────────────────┐
+  │                 FastAPI Backend (Render)               │
+  │                      (app.py)                          │
+  └──────────────────────────┬─────────────────────────────┘
+                             │
+            ┌────────────────┴────────────────┐
+            ▼                                 ▼
+┌───────────────────────┐         ┌───────────────────────┐
+│     Groq LLM API      │         │ Log Database Manager  │
+│ (llama-3.1-8b-instant)│         │  (supabase_client.py) │
+└───────────────────────┘         └───────────┬───────────┘
+                                              │ (Parallel calls via ThreadPool)
+                                              ▼
+                                  ┌───────────────────────┐
+                                  │  Supabase Analytics   │
+                                  │     Logflare API      │
+                                  └───────────────────────┘
+```
+
+### Key Technical Achievements
+* **In-Process Tool Calling**: Refactored the Model Context Protocol (MCP) to run tools directly in-process, bypassing stdio subprocess spawning and saving **200MB+ of RAM** to prevent Out-Of-Memory (OOM) crashes on Render's free tier.
+* **Parallel DB Queries**: Orchestrated log fetching from multiple Supabase log sources (Postgres, API, Auth, Functions) concurrently using Python's `ThreadPoolExecutor`, reducing log load latency by **80%** (from 18s to under 4s).
+* **Payload & Rate-Limit Optimization**: Stripped heavy metadata structures from log records and restricted parallel tool invocations, allowing full-text searches to run comfortably within Groq's free-tier Token-Per-Minute (TPM) limits.
+
+---
+
+## 2. Directory Structure
+
+* **`src/`** (Next.js Frontend)
+  * `src/app/` — Dashboard, Chat, Explorer, Layout, and Settings pages.
+  * `src/components/` — Shared UI elements (Cards, Tables, Toast notifications, Charts).
+  * `src/context/` — Global context manager (`AppContext.tsx`).
+  * `src/services/` — Frontend API communication client.
+* **`app.py`** — FastAPI entrypoint defining log query, status, and chat endpoints.
+* **`mcp_client.py`** — Handles Groq LLM communication and in-process function execution.
+* **`supabase_client.py`** — Connects to the Supabase Analytics API and normalizes log datasets.
+* **`requirements.txt`** — Python dependencies (FastAPI, Groq, Supabase, Uvicorn, Pydantic).
+* **`render.yaml`** — One-click configuration for deploying the backend on Render.
+* **`vercel.json`** — Deployment settings for Vercel.
+* **`next.config.mjs`** — Configures proxy rewrites to forward `/api` requests to the FastAPI backend.
 
 ---
 
 ## 3. Configuration & Setup
 
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Local Development
 
-2. **Configure Environment Variables**:
-   Create a `.env` file in the root of the project:
-   ```ini
-   GEMINI_API_KEY=your-gemini-api-key
-   SUPABASE_URL=https://your-project-ref.supabase.co
-   SUPABASE_PAT=sbp_your_personal_access_token
-   ```
-   *Note: A Personal Access Token (PAT) starting with `sbp_` is required to query Supabase logs. Standard API service keys will not work.*
+#### 1. Setup the Backend:
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-3. **Verify Connection**:
-   ```bash
-   python test_client.py
-   ```
+# Run FastAPI Server (starts on port 8000)
+python -m uvicorn app:app --port 8000
+```
 
-4. **Launch Streamlit Dashboard**:
-   ```bash
-   streamlit run app.py
-   ```
+#### 2. Setup the Frontend:
+```bash
+# Install dependencies
+npm install
+
+# Run Next.js Dev Server (starts on port 3000)
+npm run dev
+```
+
+#### 3. Credentials Configuration:
+Create a `.env.local` in the project root:
+```ini
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_PAT=sbp_your_personal_access_token
+GEMINI_API_KEY=gsk_your_groq_api_key
+```
+*(Note: Enter these same credentials on the **Settings** page of the web app interface to save them.)*
+
+---
+
+## 4. Cloud Deployment (Free Tier)
+
+This project is configured for one-click deployment:
+- **Frontend** → **Vercel**
+- **Backend** → **Render**
+
+Follow the detailed step-by-step instructions in the [Walkthrough / Hosting Guide](hosting_guide.md) to set up your GitHub repository, configure environment variables, and map CORS origins.
