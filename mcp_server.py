@@ -16,7 +16,7 @@ mcp = FastMCP("Supabase Log Analyzer")
 db = LogDatabaseManager()
 
 @mcp.tool()
-def list_recent_logs(limit: int = 50) -> str:
+def list_recent_logs(limit: int = 15) -> str:
     """
     Retrieves the most recent Supabase platform log entries across all enabled
     sources (Postgres, API/Edge, Auth, Edge Functions). Each entry is normalized to
@@ -24,9 +24,10 @@ def list_recent_logs(limit: int = 50) -> str:
     Use this to see what has been happening on the project recently.
 
     Args:
-        limit: The maximum number of logs to return. Defaults to 50.
+        limit: The maximum number of logs to return. Capped at 15.
     """
-    logger.info(f"Tool 'list_recent_logs' called with limit={limit}")
+    limit = min(limit, 15)
+    logger.info(f"Tool 'list_recent_logs' called with limit={limit} (capped at 15)")
     try:
         logs = db.fetch_logs(limit=limit)
         return json.dumps(logs, indent=2, default=str)
@@ -35,7 +36,7 @@ def list_recent_logs(limit: int = 50) -> str:
         return json.dumps({"error": str(e)})
 
 @mcp.tool()
-def get_logs_by_level(level: str, limit: int = 50) -> str:
+def get_logs_by_level(level: str, limit: int = 15) -> str:
     """
     Filters Supabase platform logs by normalized severity level (INFO, WARNING, ERROR, DEBUG).
     Severity is derived per source: HTTP status buckets for API/Edge & Edge Functions,
@@ -44,9 +45,10 @@ def get_logs_by_level(level: str, limit: int = 50) -> str:
 
     Args:
         level: The severity level to filter by (INFO, WARNING, ERROR, DEBUG). Case-insensitive.
-        limit: The maximum number of logs to return. Defaults to 50.
+        limit: The maximum number of logs to return. Capped at 15.
     """
-    logger.info(f"Tool 'get_logs_by_level' called with level={level}, limit={limit}")
+    limit = min(limit, 15)
+    logger.info(f"Tool 'get_logs_by_level' called with level={level}, limit={limit} (capped at 15)")
     try:
         logs = db.get_logs_by_level(level=level, limit=limit)
         return json.dumps(logs, indent=2, default=str)
@@ -55,7 +57,7 @@ def get_logs_by_level(level: str, limit: int = 50) -> str:
         return json.dumps({"error": str(e)})
 
 @mcp.tool()
-def search_logs_by_keyword(keyword: str, limit: int = 50) -> str:
+def search_logs_by_keyword(keyword: str, limit: int = 15) -> str:
     """
     Searches Supabase platform logs for a keyword or phrase in the message, service, or
     metadata fields. Use this to look for specific error codes, request paths, status
@@ -63,9 +65,10 @@ def search_logs_by_keyword(keyword: str, limit: int = 50) -> str:
 
     Args:
         keyword: The search term or keyword (e.g., '500', '/auth/v1/token', 'deadlock', 'timeout').
-        limit: The maximum number of matches to return. Defaults to 50.
+        limit: The maximum number of matches to return. Capped at 15.
     """
-    logger.info(f"Tool 'search_logs_by_keyword' called with keyword='{keyword}', limit={limit}")
+    limit = min(limit, 15)
+    logger.info(f"Tool 'search_logs_by_keyword' called with keyword='{keyword}', limit={limit} (capped at 15)")
     try:
         logs = db.search_logs(keyword=keyword, limit=limit)
         return json.dumps(logs, indent=2, default=str)

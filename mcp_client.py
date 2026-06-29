@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Groq model to use — fast, free-tier, supports tool calling
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 class MCPGeminiClient:
     """AI chat client powered by Groq LLM with MCP tool support."""
@@ -218,6 +218,7 @@ class MCPGeminiClient:
                             messages.append({
                                 "role": "tool",
                                 "tool_call_id": tc.id,
+                                "name": tool_name,
                                 "content": result_text
                             })
 
