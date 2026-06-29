@@ -68,7 +68,7 @@ def reload_clients():
     load_dotenv(override=True)
     db = LogDatabaseManager()
     mcp_client = MCPGeminiClient()
-    logger.info("Database and Gemini clients reloaded with new settings.")
+    logger.info("Database and Groq/MCP clients reloaded with new settings.")
 
 # 1. Dashboard Metrics
 @app.get("/api/dashboard/metrics")
@@ -237,7 +237,7 @@ async def send_chat_message(request: ChatRequest):
     global chat_history
     try:
         if not os.getenv("GEMINI_API_KEY"):
-            raise HTTPException(status_code=400, detail="Gemini API Key is not configured. Go to Settings to save your key.")
+            raise HTTPException(status_code=400, detail="Groq API Key is not configured. Go to Settings to save your key.")
             
         answer, updated_history = await mcp_client.execute_query(
             user_query=request.message,
@@ -255,7 +255,7 @@ async def send_chat_message(request: ChatRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error running Gemini MCP chat: {e}")
+        logger.error(f"Error running Groq MCP chat: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 6. Get Current Settings
@@ -334,17 +334,17 @@ def test_connection():
         status["supabase"]["connected"] = False
         status["supabase"]["message"] = f"Failed: {e}"
         
-    # Test Gemini connection
+    # Test Gemini (now Groq) connection
     try:
-        from google import genai
+        from groq import Groq
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY is not configured")
-        client = genai.Client(api_key=api_key)
-        # Quick metadata query or simple check
-        models = client.models.list()
+            raise ValueError("Groq API Key is not configured (stored in Gemini Key setting)")
+        client = Groq(api_key=api_key)
+        # Quick validation request (e.g. list models)
+        client.models.list()
         status["gemini"]["connected"] = True
-        status["gemini"]["message"] = "Successfully authenticated with Gemini API"
+        status["gemini"]["message"] = "Successfully authenticated with Groq API"
     except Exception as e:
         status["gemini"]["connected"] = False
         status["gemini"]["message"] = f"Failed: {e}"
