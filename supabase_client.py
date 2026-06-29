@@ -195,7 +195,8 @@ class LogDatabaseManager:
         last_err: Optional[Exception] = None
         for attempt in range(3):
             try:
-                with urllib.request.urlopen(req, timeout=45) as resp:
+                # 8 seconds is more than enough. If it takes longer, fail fast to prevent timeout
+                with urllib.request.urlopen(req, timeout=8) as resp:
                     payload = json.loads(resp.read().decode("utf-8"))
                 break
             except urllib.error.HTTPError as e:
@@ -296,12 +297,15 @@ class LogDatabaseManager:
         if not force and self._pool_cache is not None and self._pool_cache_key == key:
             return self._pool_cache
 
+        from concurrent.futures import ThreadPoolExecutor
+
         pool: List[Dict[str, Any]] = []
-        for source in self.sources:
+
+        def fetch_source_logs(source):
             cfg = SOURCE_CONFIG.get(source)
             if not cfg:
                 logger.warning(f"Unknown log source '{source}' skipped.")
-                continue
+                return []
 
             base_sql = cfg["sql"].strip().rstrip(";")
             rich_sql = f"{base_sql} order by timestamp desc limit {int(per_source)}"
@@ -320,8 +324,17 @@ class LogDatabaseManager:
                     logger.error(f"Source '{source}' minimal query also failed: {e2}")
                     rows = []
 
+            normalized = []
             for r in rows:
-                pool.append(self._normalize_row(source, r))
+                normalized.append(self._normalize_row(source, r))
+            return normalized
+
+        # Run fetches in parallel to avoid sequential network bottleneck
+        with ThreadPoolExecutor(max_workers=max(len(self.sources), 1)) as executor:
+            results = list(executor.map(fetch_source_logs, self.sources))
+
+        for r_list in results:
+            pool.extend(r_list)
 
         pool.sort(key=lambda x: x.get("created_at") or "", reverse=True)
         self._pool_cache = pool
